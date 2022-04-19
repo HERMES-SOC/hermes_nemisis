@@ -31,6 +31,8 @@ Overview
 .. end-badges
 
 This is a Python package for processing and analyzing data from the Noise Eliminating Magnetometer Instrument in a Small Integrated System (NEMISIS) instrument on the Lunar Gateway.
+NEMISIS is comprised of a fluxgate magnetometer (M0) at the end of a deployable boom and two inductive magnetometers (M1, M2) mounted on the HERMES platform. Each sensor measures the vector magnetic field at its location.
+Measurements from the 3 sensors are combined to reduce the contribution to the local field due to Gateway.
 
 License
 -------
