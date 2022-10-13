@@ -2,7 +2,7 @@
 A module for all things calibration.
 """
 import random
-from hermes_nemesis import log
+from hermes_nemisis import log
 
 __all__ = ["calibrate_file", "get_calibration_file", "read_calibration_file"]
 
