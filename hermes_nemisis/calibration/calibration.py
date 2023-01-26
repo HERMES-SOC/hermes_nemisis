@@ -4,10 +4,7 @@ A module for all things calibration.
 import random
 import os.path
 
-from spacepy import pycdf
-
 import ccsdspy
-from ccsdspy import PacketField
 
 from hermes_core import log
 from hermes_core.util.util import create_science_filename, parse_science_filename
@@ -15,7 +12,14 @@ from hermes_core.util.util import create_science_filename, parse_science_filenam
 import hermes_nemisis
 from hermes_nemisis.io import read_file
 
-__all__ = ["calibrate_file", "get_calibration_file", "read_calibration_file"]
+__all__ = [
+    "process_file",
+    "parse_nemisis_sci_packets",
+    "nemisis_sci_data_to_cdf",
+    "calibrate_file",
+    "get_calibration_file",
+    "read_calibration_file",
+]
 
 
 def process_file(data_filename: str) -> list:
@@ -34,7 +38,6 @@ def process_file(data_filename: str) -> list:
         Fully specificied filenames for the output files.
     """
     log.info(f"Processing file {data_filename}.")
-
     output_files = []
 
     calibrated_file = calibrate_file(data_filename)
@@ -68,7 +71,7 @@ def calibrate_file(data_filename) -> str:
     """
     log.info(f"Calibrating file:{data_filename}.")
     output_filename = (
-        data_filename  # for testing, the output filename MUST NOT same as input
+        data_filename  # TODO: for testing, the output filename MUST NOT same as input
     )
     file_metadata = parse_science_filename(data_filename)
 
@@ -77,23 +80,37 @@ def calibrate_file(data_filename) -> str:
         file_metadata["instrument"] == hermes_nemisis.INST_NAME
         and file_metadata["level"] == "l0"
     ):
-        data = parse_nemisis_sci_packets(data_filename)
-        output_filename = nemisis_sci_data_to_cdf(data, file_metadata)
-    elif file_metadata["instrument"] == "sunsensor" and file_metadata["level"] == "l1":
-        data = read_file(data_filename)
-        calib_file = get_calibration_file(data_filename)
-        if calib_file is None:
-            raise ValueError(f"Calibration file for {data_filename} not found.")
-        else:
-            calib_data = read_calibration_file(calib_file)
-        # calibrate your data
-        # create a new file name with create_science_filename()
+        #  data = parse_nemisis_sci_packets(data_filename)
+        data = {}
+        level1_filename = nemisis_sci_data_to_cdf(data, file_metadata)
+        output_filename = level1_filename
+    elif (
+        file_metadata["instrument"] == hermes_nemisis.INST_NAME
+        and file_metadata["level"] == "l1"
+    ):
+        # generate the quicklook data
+        #
+        # the following shows an example flow for calibrating a file
+        # data = read_file(data_filename)
+        # calib_file = get_calibration_file(data_filename)
+        # if calib_file is None:
+        #    raise ValueError(f"Calibration file for {data_filename} not found.")
+        # else:
+        #    calib_data = read_calibration_file(calib_file)
+
+        # now that you have your calibration data, you can calibrate the science data
+        ql_filename = create_science_filename(
+            file_metadata["instrument"],
+            file_metadata["time"],
+            "ql",
+            file_metadata["version"],
+        )
         # write a new cdf file
 
         # example log messages
         log.info(f"Despiking removing {random.randint(0, 10)} spikes")
         log.warning(f"Despiking could not remove {random.randint(1, 5)}")
-
+        output_filename = ql_filename
     else:
         raise ValueError(f"The file {data_filename} is not recognized.")
 
@@ -157,8 +174,13 @@ def nemisis_sci_data_to_cdf(data, file_metadata) -> str:
     """
 
     cdf_filename = create_science_filename(
-        hermes_nemisis.INST_NAME, file_metadata["time"], "l1", "1.0.0", test=False
+        file_metadata["instrument"],
+        file_metadata["time"],
+        "l1",
+        f'1.0.{file_metadata["version"]}',
     )
+
+    # create cdf file below
 
     return cdf_filename
 
@@ -201,7 +223,4 @@ def read_calibration_file(calib_filename):
     Examples
     --------
     """
-
-    # if can't read the file
-
     return None
