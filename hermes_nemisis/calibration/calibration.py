@@ -192,7 +192,7 @@ def nemisis_sci_data_to_cdf(data: dict, original_filename: Path) -> Path:
         "l1",
         f'1.0.{file_metadata["version"]}',
     )
-    
+
     # create an empty file for testing purposes
     with open(cdf_filename, "w"):
         pass
