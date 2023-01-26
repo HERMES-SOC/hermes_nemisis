@@ -3,6 +3,7 @@ A module for all things calibration.
 """
 import random
 import os.path
+from pathlib import Path
 
 import ccsdspy
 
@@ -22,7 +23,7 @@ __all__ = [
 ]
 
 
-def process_file(data_filename: str) -> list:
+def process_file(data_filename: Path) -> list:
     """
     This is the entry point for the pipeline processing.
     It runs all of the various processing steps required.
@@ -49,7 +50,7 @@ def process_file(data_filename: str) -> list:
     return output_files
 
 
-def calibrate_file(data_filename) -> str:
+def calibrate_file(data_filename: Path) -> Path:
     """
     Given an input data file, raise it to the next level
     (e.g. level 0 to level 1, level 1 to quicklook) it and return a new file.
@@ -73,7 +74,7 @@ def calibrate_file(data_filename) -> str:
     output_filename = (
         data_filename  # TODO: for testing, the output filename MUST NOT same as input
     )
-    file_metadata = parse_science_filename(data_filename)
+    file_metadata = parse_science_filename(data_filename.name)
 
     # check if level 0 binary file, if so call appropriate functions
     if (
@@ -82,7 +83,10 @@ def calibrate_file(data_filename) -> str:
     ):
         #  data = parse_nemisis_sci_packets(data_filename)
         data = {}
-        level1_filename = nemisis_sci_data_to_cdf(data, file_metadata)
+        # test opening the file
+        with open(data_filename, "r") as fp:
+            pass
+        level1_filename = nemisis_sci_data_to_cdf(data, data_filename)
         output_filename = level1_filename
     elif (
         file_metadata["instrument"] == hermes_nemisis.INST_NAME
@@ -98,14 +102,22 @@ def calibrate_file(data_filename) -> str:
         # else:
         #    calib_data = read_calibration_file(calib_file)
 
+        # test opening the file
+        with open(data_filename, "r") as fp:
+            pass
+
         # now that you have your calibration data, you can calibrate the science data
-        ql_filename = create_science_filename(
+        ql_filename = data_filename.parent / create_science_filename(
             file_metadata["instrument"],
             file_metadata["time"],
             "ql",
             file_metadata["version"],
         )
-        # write a new cdf file
+
+        # write your cdf file below
+        # create an empty file for testing purposes
+        with open(data_filename.parent / ql_filename, "w"):
+            pass
 
         # example log messages
         log.info(f"Despiking removing {random.randint(0, 10)} spikes")
@@ -117,7 +129,7 @@ def calibrate_file(data_filename) -> str:
     return output_filename
 
 
-def parse_nemisis_sci_packets(data_filename) -> dict:
+def parse_nemisis_sci_packets(data_filename: Path) -> dict:
     """
     Parse a level 0 nemisis binary file containing CCSDS packets.
 
@@ -146,7 +158,7 @@ def parse_nemisis_sci_packets(data_filename) -> dict:
     return data
 
 
-def nemisis_sci_data_to_cdf(data, file_metadata) -> str:
+def nemisis_sci_data_to_cdf(data: dict, original_filename: Path) -> Path:
     """
     Write level 0 nemisis science data to a level 1 cdf file.
 
@@ -154,38 +166,41 @@ def nemisis_sci_data_to_cdf(data, file_metadata) -> str:
     ----------
     data: dict
         A dictionary of arrays which includes the ccsds header fields
-    metadata: dict
-        A metadata dictionary from the originating binary file.
-        The output from `parse_science_filename()`.
+    original_filename: Path
+        The Path to the originating file.
 
     Returns
     -------
-    output_filename: str
+    output_filename: Path
         Fully specificied filename of cdf file
 
     Examples
     --------
+    >>> from pathlib import Path
     >>> from hermes_core.util.util import parse_science_filename
     >>> import hermes_nemisis.calibration as calib
-    >>> data_filename = "hermes_MAG_l0_2022339-000000_v0.bin"
+    >>> data_filename = Path("hermes_MAG_l0_2022339-000000_v0.bin")
     >>> metadata = parse_science_filename(data_filename)  # doctest: +SKIP
     >>> data_packets = calib.parse_nemisis_sci_packets(data_filename)  # doctest: +SKIP
-    >>> cdf_filename = calib.nemisis_sci_data_to_cdf(data_packets, metadata)  # doctest: +SKIP
+    >>> cdf_filename = calib.nemisis_sci_data_to_cdf(data_packets, data_filename)  # doctest: +SKIP
     """
+    file_metadata = parse_science_filename(original_filename.name)
 
-    cdf_filename = create_science_filename(
+    cdf_filename = original_filename.parent / create_science_filename(
         file_metadata["instrument"],
         file_metadata["time"],
         "l1",
         f'1.0.{file_metadata["version"]}',
     )
-
-    # create cdf file below
+    
+    # create an empty file for testing purposes
+    with open(cdf_filename, "w"):
+        pass
 
     return cdf_filename
 
 
-def get_calibration_file(data_filename, time=None) -> str:
+def get_calibration_file(data_filename: Path, time=None) -> Path:
     """
     Given a time, return the appropriate calibration file.
 
@@ -206,7 +221,7 @@ def get_calibration_file(data_filename, time=None) -> str:
     return None
 
 
-def read_calibration_file(calib_filename):
+def read_calibration_file(calib_filename: Path):
     """
     Given a calibration, return the calibration structure.
 
