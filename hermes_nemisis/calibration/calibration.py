@@ -81,7 +81,7 @@ def calibrate_file(data_filename: Path) -> Path:
         file_metadata["instrument"] == hermes_nemisis.INST_NAME
         and file_metadata["level"] == "l0"
     ):
-        #  data = parse_nemisis_sci_packets(data_filename)
+        #  data = parse_l0_sci_packets(data_filename)
         data = {}
         # test opening the file
         with open(data_filename, "r") as fp:
