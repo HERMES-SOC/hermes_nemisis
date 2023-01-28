@@ -15,8 +15,8 @@ from hermes_nemisis.io import read_file
 
 __all__ = [
     "process_file",
-    "parse_nemisis_sci_packets",
-    "nemisis_sci_data_to_cdf",
+    "parse_l0_sci_packets",
+    "l0_sci_data_to_cdf",
     "calibrate_file",
     "get_calibration_file",
     "read_calibration_file",
@@ -57,12 +57,12 @@ def calibrate_file(data_filename: Path) -> Path:
 
     Parameters
     ----------
-    data_filename: str
+    data_filename: Path
         Fully specificied filename of the input data file.
 
     Returns
     -------
-    output_filename: str
+    output_filename: Path
         Fully specificied filename of the output file.
 
     Examples
@@ -86,7 +86,7 @@ def calibrate_file(data_filename: Path) -> Path:
         # test opening the file
         with open(data_filename, "r") as fp:
             pass
-        level1_filename = nemisis_sci_data_to_cdf(data, data_filename)
+        level1_filename = l0_sci_data_to_cdf(data, data_filename)
         output_filename = level1_filename
     elif (
         file_metadata["instrument"] == hermes_nemisis.INST_NAME
@@ -129,7 +129,7 @@ def calibrate_file(data_filename: Path) -> Path:
     return output_filename
 
 
-def parse_nemisis_sci_packets(data_filename: Path) -> dict:
+def parse_l0_sci_packets(data_filename: Path) -> dict:
     """
     Parse a level 0 nemisis binary file containing CCSDS packets.
 
@@ -158,7 +158,7 @@ def parse_nemisis_sci_packets(data_filename: Path) -> dict:
     return data
 
 
-def nemisis_sci_data_to_cdf(data: dict, original_filename: Path) -> Path:
+def l0_sci_data_to_cdf(data: dict, original_filename: Path) -> Path:
     """
     Write level 0 nemisis science data to a level 1 cdf file.
 
@@ -181,8 +181,8 @@ def nemisis_sci_data_to_cdf(data: dict, original_filename: Path) -> Path:
     >>> import hermes_nemisis.calibration as calib
     >>> data_filename = Path("hermes_MAG_l0_2022339-000000_v0.bin")
     >>> metadata = parse_science_filename(data_filename)  # doctest: +SKIP
-    >>> data_packets = calib.parse_nemisis_sci_packets(data_filename)  # doctest: +SKIP
-    >>> cdf_filename = calib.nemisis_sci_data_to_cdf(data_packets, data_filename)  # doctest: +SKIP
+    >>> data_packets = calib.parse_l0_sci_packets(data_filename)  # doctest: +SKIP
+    >>> cdf_filename = calib.l0_sci_data_to_cdf(data_packets, data_filename)  # doctest: +SKIP
     """
     file_metadata = parse_science_filename(original_filename.name)
 

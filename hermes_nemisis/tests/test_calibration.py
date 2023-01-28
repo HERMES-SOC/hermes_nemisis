@@ -29,7 +29,7 @@ def level1_file(tmp_path_factory):
 def test_nemisis_sci_data_to_cdf(level0_file):
     """Test that the output filenames are correct and that a file was actually created."""
     data = {}
-    output_file = calib.nemisis_sci_data_to_cdf(data, level0_file)
+    output_file = calib.l0_sci_data_to_cdf(data, level0_file)
     assert output_file.name == level1_filename
     assert output_file.is_file()
 
