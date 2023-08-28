@@ -147,7 +147,7 @@ docs/_build
 docs/generated
 docs/api
 docs/whatsnew/latest_changelog.txt
-hermes_nemisis/version.py
+hermes_nemisis/_version.py
 htmlcov/
 
 #mac
