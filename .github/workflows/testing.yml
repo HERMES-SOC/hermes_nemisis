@@ -33,7 +33,7 @@ jobs:
         pip install -e .[test]
       if: ${{ !(matrix.platform == 'windows-latest' && matrix.python-version == '3.11') }}
     - name: Run tests
-      run: pytest --pyargs hermes_eea --cov hermes_eea
+      run: pytest --pyargs hermes_nemisis --cov hermes_nemisis
       env:
         PLATFORM: ${{ matrix.platform }}
       # Skip Windows Python 3.11 tests until SpacePy is updated
