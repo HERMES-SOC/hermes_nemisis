@@ -6,8 +6,8 @@ import hermes_nemisis.calibration as calib
 from hermes_core.util.util import create_science_filename, parse_science_filename
 
 level0_filename = "hermes_MAG_l0_2022339-000000_v0.bin"
-level1_filename = "hermes_nms_l1_20221205_000000_v1.0.0.cdf"
-ql_filename = "hermes_nms_ql_20221205_000000_v1.0.0.cdf"
+level1_filename = "hermes_nms_l1_20221205T000000_v1.0.0.cdf"
+ql_filename = "hermes_nms_ql_20221205T000000_v1.0.0.cdf"
 
 
 @pytest.fixture(scope="session")
