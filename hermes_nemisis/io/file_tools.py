@@ -83,10 +83,10 @@ def parse_l0_sci_packets(data_filename: Path) -> HermesData:
             os.path.join(hermes_nemisis._data_directory, "MAG_sci_packet_def.csv")
         )
         data = pkt.load(data_filename)
-    except:
+    except (RuntimeError, ValueError, KeyError):
         log.critical(f"Failed to Parse Packets for file:{data_filename}.")
         raise RuntimeError(
-            f"Failed to Parse Packets for file:{data_filename}. Please ensure Packet Definition: MAG_sci_packet_def.csv si correct."
+            f"Failed to Parse Packets for file:{data_filename}. Please ensure Packet Definition: MAG_sci_packet_def.csv is correct."
         )
 
     # Process the Packet dict to create a HermesData data container
