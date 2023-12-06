@@ -60,7 +60,7 @@ def get_test_hermes_data():
 
 
 def test_load_data_file(level0_file):
-    with pytest.raises(FileNotFoundError) as excinfo:
+    with pytest.raises(RuntimeError) as excinfo:
         _ = load_data_file(level0_file)
 
 
