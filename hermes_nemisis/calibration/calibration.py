@@ -1,6 +1,7 @@
 """
 A module for all things calibration.
 """
+
 import random
 import os.path
 from pathlib import Path
