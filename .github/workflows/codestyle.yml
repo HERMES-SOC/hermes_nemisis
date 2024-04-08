@@ -36,4 +36,3 @@ jobs:
     - name: flake8
       run: |
         flake8 --count hermes_nemisis
-

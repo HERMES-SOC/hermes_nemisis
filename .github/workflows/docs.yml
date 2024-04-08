@@ -11,13 +11,13 @@ on:
   workflow_dispatch: # For on demand runs
   schedule:
     - cron: 0 0 * * * # Scheduled run every day at midnight
+
 jobs:
   build:
-    runs-on: ${{ matrix.platform }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-latest]
         python-version: [3.9]
 
     steps:
