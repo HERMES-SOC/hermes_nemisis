@@ -1,5 +1,4 @@
 import pytest
-import os.path
 from pathlib import Path
 
 import hermes_nemisis.calibration as calib
