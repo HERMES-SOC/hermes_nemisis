@@ -3,6 +3,8 @@ from pathlib import Path
 
 import hermes_nemisis.calibration as calib
 from hermes_core.util.util import create_science_filename, parse_science_filename
+from hermes_nemisis.calibration.readbin_CCSDS import readbin_CCSDS
+
 
 level0_filename = "hermes_NEM_l0_2022339-000000_v0.bin"
 level1_filename = "hermes_nem_l1_20221205T000000_v1.0.0.cdf"
@@ -24,6 +26,9 @@ def level1_file(tmp_path_factory):
         pass
     return fn
 
+def test_readbin_CCSDS():  
+    output_file = readbin_CCSDS('hermes_nemisis/data/hermes_NEM_l0_2024085-174022_v00.bin')
+    # assert output_file.is_file()  # this fails.  output_file is a string object, not a file. is this a HermesData issue?
 
 def test_nemisis_sci_data_to_cdf(level0_file):
     """Test that the output filenames are correct and that a file was actually created."""
