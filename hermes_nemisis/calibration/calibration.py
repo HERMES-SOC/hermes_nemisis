@@ -3,7 +3,6 @@ A module for all things calibration.
 """
 
 import random
-import os.path
 from pathlib import Path
 
 import ccsdspy
@@ -31,13 +30,14 @@ def process_file(data_filename: Path) -> list:
 
     Parameters
     ----------
-    data_filename: str
-        Fully specificied filename of an input file
+    data_filename: `pathlib.Path`
+        Fully specificied filename of an input file.
+        The file contents: Traditional binary packets in CCSDS format
 
     Returns
     -------
-    output_filenames: list
-        Fully specificied filenames for the output files.
+    output_filenames: `list[pathlib.Path]`
+        Fully specificied filenames for the output CDF files.
     """
     log.info(f"Processing file {data_filename}.")
     output_files = []
@@ -58,18 +58,18 @@ def calibrate_file(data_filename: Path) -> Path:
 
     Parameters
     ----------
-    data_filename: Path
+    data_filename: `pathlib.Path`
         Fully specificied filename of the input data file.
 
     Returns
     -------
-    output_filename: Path
+    output_filename: `pathlib.Path`
         Fully specificied filename of the output file.
 
     Examples
     --------
     >>> from hermes_nemisis.calibration import calibrate_file
-    >>> level1_file = calibrate_file('hermes_MAG_l0_2022239-000000_v0.bin')  # doctest: +SKIP
+    >>> level1_file = calibrate_file('hermes_NEM_l0_2022239-000000_v0.bin')  # doctest: +SKIP
     """
     log.info(f"Calibrating file:{data_filename}.")
     output_filename = (
@@ -136,7 +136,7 @@ def parse_l0_sci_packets(data_filename: Path) -> dict:
 
     Parameters
     ----------
-    data_filename: str
+    data_filename: `pathlib.Path`
         Fully specificied filename
 
     Returns
@@ -147,13 +147,13 @@ def parse_l0_sci_packets(data_filename: Path) -> dict:
     Examples
     --------
     >>> import hermes_nemisis.calibration as calib
-    >>> data_filename = "hermes_MAG_l0_2022339-000000_v0.bin"
+    >>> data_filename = "hermes_NEM_l0_2022339-000000_v0.bin"
     >>> data = calib.parse_nemisis_sci_packets(data_filename)  # doctest: +SKIP
     """
     log.info(f"Parsing packets from file:{data_filename}.")
 
     pkt = ccsdspy.FixedLength.from_file(
-        os.path.join(hermes_nemisis._data_directory, "MAG_sci_packet_def.csv")
+        Path(hermes_nemisis._data_directory) / "NEM_sci_packet_def.csv"
     )
     data = pkt.load(data_filename)
     return data
@@ -167,12 +167,12 @@ def l0_sci_data_to_cdf(data: dict, original_filename: Path) -> Path:
     ----------
     data: dict
         A dictionary of arrays which includes the ccsds header fields
-    original_filename: Path
+    original_filename: `pathlib.Path`
         The Path to the originating file.
 
     Returns
     -------
-    output_filename: Path
+    output_filename: `pathlib.Path`
         Fully specificied filename of cdf file
 
     Examples
@@ -180,7 +180,7 @@ def l0_sci_data_to_cdf(data: dict, original_filename: Path) -> Path:
     >>> from pathlib import Path
     >>> from hermes_core.util.util import parse_science_filename
     >>> import hermes_nemisis.calibration as calib
-    >>> data_filename = Path("hermes_MAG_l0_2022339-000000_v0.bin")
+    >>> data_filename = Path("hermes_NEM_l0_2022339-000000_v0.bin")
     >>> metadata = parse_science_filename(data_filename)  # doctest: +SKIP
     >>> data_packets = calib.parse_l0_sci_packets(data_filename)  # doctest: +SKIP
     >>> cdf_filename = calib.l0_sci_data_to_cdf(data_packets, data_filename)  # doctest: +SKIP
@@ -207,13 +207,13 @@ def get_calibration_file(data_filename: Path, time=None) -> Path:
 
     Parameters
     ----------
-    data_filename: str
+    data_filename: `pathlib.Path`
         Fully specificied filename of the non-calibrated file (data level < 2)
     time: ~astropy.time.Time
 
     Returns
     -------
-    calib_filename: str
+    calib_filename: `pathlib.Path`
         Fully specificied filename for the appropriate calibration file.
 
     Examples
@@ -228,12 +228,12 @@ def read_calibration_file(calib_filename: Path):
 
     Parameters
     ----------
-    calib_filename: str
+    calib_filename: `pathlib.Path`
         Fully specificied filename of the non-calibrated file (data level < 2)
 
     Returns
     -------
-    output_filename: str
+    output_filename: `pathlib.Path`
         Fully specificied filename of the appropriate calibration file.
 
     Examples

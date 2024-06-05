@@ -1,13 +1,12 @@
 import pytest
-import os.path
 from pathlib import Path
 
 import hermes_nemisis.calibration as calib
 from hermes_core.util.util import create_science_filename, parse_science_filename
 
-level0_filename = "hermes_MAG_l0_2022339-000000_v0.bin"
-level1_filename = "hermes_nms_l1_20221205T000000_v1.0.0.cdf"
-ql_filename = "hermes_nms_ql_20221205T000000_v1.0.0.cdf"
+level0_filename = "hermes_NEM_l0_2022339-000000_v0.bin"
+level1_filename = "hermes_nem_l1_20221205T000000_v1.0.0.cdf"
+ql_filename = "hermes_nem_ql_20221205T000000_v1.0.0.cdf"
 
 
 @pytest.fixture(scope="session")
@@ -37,13 +36,13 @@ def test_nemisis_sci_data_to_cdf(level0_file):
 def test_calibrate_file_nofile_error():
     """Test that if file does not exist it produces the correct error. The file needs to be in the correct format."""
     with pytest.raises(FileNotFoundError):
-        calib.calibrate_file(Path("hermes_MAG_l0_2032339-000000_v0.bin"))
+        calib.calibrate_file(Path("hermes_NEM_l0_2032339-000000_v0.bin"))
 
 
 def test_process_file_nofile_error():
     """Test that if file does not exist it produces the correct error. The file needs to be in the correct format."""
     with pytest.raises(FileNotFoundError):
-        calib.process_file(Path("hermes_MAG_l0_2032339-000000_v0.bin"))
+        calib.process_file(Path("hermes_NEM_l0_2032339-000000_v0.bin"))
 
 
 def test_calibrate_file(level0_file, level1_file):
