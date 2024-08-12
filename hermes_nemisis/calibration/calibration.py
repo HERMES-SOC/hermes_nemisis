@@ -213,6 +213,11 @@ def l0_sci_data_to_l1(data: dict, original_filename: Path) -> Path:
     acq_pos_times = np.zeros(n_pkts)
     acq_pos_num = np.zeros(n_pkts)
     max_pkt = 0
+
+    # verify checksums
+    checksum_valid = data["calculated_checksum"][range(n_pkts)] == data["CHECKSUM"][range(n_pkts)]
+
+
     # # test bad packet(s) at end of file #### TEST
     # data["START_FLAG"][n_pkts-1] = 1    #### TEST
     # data["XSUM"][n_pkts-2] = 0          #### TEST
@@ -220,7 +225,9 @@ def l0_sci_data_to_l1(data: dict, original_filename: Path) -> Path:
         # if RELAY_STATE == 0  OR  START_FLAG == 1  OR  XSUM == 0 then 
         # we must not use the the time-at-tone, ISR count or ACQ_POS_NUM.  
         if (data['RELAY_STATE'][pkt] == 1 and data['START_FLAG'][pkt] == 0 and data['XSUM'][pkt] == 1):
-            # these are the precise times of the ACQ_POS_NUM sample of each packet
+            # none of the above-mentioned conditions are true, so we trust the timing information
+            # contained within this packet.
+            # Record the precise time of the ACQ_POS_NUM sample of this packet
             # (we know the time at tone pulse occurs ISR_COUNT interrupts after the ACQ_POS_NUM'th sample is begun)
             acq_pos_times[pkt] = data['MET_SECONDS'][pkt] + data['SCTF_SECONDS'][pkt] + (data['SCTF_SUBSECONDS'][pkt]/2**32) - \
                 (data['ISR_COUNT'][pkt]*14.933e-6)
@@ -255,7 +262,11 @@ def l0_sci_data_to_l1(data: dict, original_filename: Path) -> Path:
     pni2_bx =  np.zeros(n_pkts*40)
     pni2_by =  np.zeros(n_pkts*40)
     pni2_bz =  np.zeros(n_pkts*40)
+    sampflags =np.zeros(n_pkts*40, dtype = np.int8) 
     for pkt in range(n_pkts):
+        # with bit 0 of the sampflags byte,
+        # flag the first sample of the packet if the "power-on start" flag is present
+        sampflags[pkt*40] |= data['START_FLAG'][pkt] << 0
         for i in range(40):
             sample_time = acq_pos_times[pkt] + samp_delta * (i - acq_pos_num[pkt])
             fg_times[pkt*40+i] = sample_time
@@ -270,7 +281,12 @@ def l0_sci_data_to_l1(data: dict, original_filename: Path) -> Path:
             pni2_bx[pkt*40+i] = data['MAG_DATA'][pkt][i*9 +6]
             pni2_by[pkt*40+i] = data['MAG_DATA'][pkt][i*9 +7]
             pni2_bz[pkt*40+i] = data['MAG_DATA'][pkt][i*9 +8]
-    
+
+            # with bit 1 of the sampflags byte,
+            # flag all samples in the packet if the checksum is bad
+            sampflags[pkt*40+i] |= (checksum_valid[pkt] == 0) << 1
+
+
     # end time of each packet (in theory)
     pkt_times = acq_pos_times + (40 - acq_pos_num)*samp_delta
 
@@ -293,9 +309,6 @@ def l0_sci_data_to_l1(data: dict, original_filename: Path) -> Path:
     t_fg = np.array(data['FG_TEMP'][range(n_pkts)]) * (3.3 / 1024) * 100 - 273.15
     t_pni1 = np.array(data['PNI1_TEMP'][range(n_pkts)]) # PNI MI-S1 sensor temperature conversion **GOES HERE**
     t_pni2 = np.array(data['PNI2_TEMP'][range(n_pkts)]) # PNI MI-S2 sensor temperature conversion **GOES HERE**
-
-    # verify checksums
-    checksum_valid = data["calculated_checksum"][range(n_pkts)] == data["CHECKSUM"][range(n_pkts)]
 
     # convert time tags to AstroPy times
     tt2k_epoch = Time('2000-01-01 11:58:55.816', scale='utc')
@@ -374,6 +387,12 @@ def l0_sci_data_to_l1(data: dict, original_filename: Path) -> Path:
             value = pni2_bz,
             unit='nT',
             dtype=np.float32
+         ),
+
+         'hermes_nem_sampflags': u.Quantity(
+            value = sampflags,
+            unit='',
+            dtype=np.uint8
          )
 
       }
@@ -388,12 +407,12 @@ def l0_sci_data_to_l1(data: dict, original_filename: Path) -> Path:
             'hermes_nem_pkt_id': u.Quantity(
                 value = data['PKT_ID'][range(n_pkts)],
                 unit='',
-                dtype=np.float32
+                dtype=np.uint32
             ),
             'hermes_nem_acq_pos_num': u.Quantity(
                 value = data['ACQ_POS_NUM'][range(n_pkts)],
                 unit='',
-                dtype=np.uint32
+                dtype=np.uint8
             ),
             'hermes_nem_xsum': u.Quantity(
                 value = data['XSUM'][range(n_pkts)],
@@ -447,6 +466,21 @@ def l0_sci_data_to_l1(data: dict, original_filename: Path) -> Path:
             ),
             'hermes_nem_rtc_time': u.Quantity(
                 value = rt_clock,
+                unit='s',
+                dtype=np.float64
+            ),
+            'hermes_nem_met_seconds': u.Quantity(
+                value = data['MET_SECONDS'][range(n_pkts)],
+                unit='s',
+                dtype=np.uint32
+            ),
+            'hermes_nem_sctf_seconds': u.Quantity(
+                value = data['SCTF_SECONDS'][range(n_pkts)],
+                unit='s',
+                dtype=np.uint32
+            ),
+            'hermes_nem_sctf_subseconds': u.Quantity(
+                value = data['SCTF_SUBSECONDS'][range(n_pkts)]/2**32,
                 unit='s',
                 dtype=np.float64
             ),
@@ -541,6 +575,9 @@ def l0_sci_data_to_l1(data: dict, original_filename: Path) -> Path:
         OrderedDict({"CATDESC":"PNI2 axis 3 OUTPUT IN PSEUDO-nT"})
     )
 
+    nemisis_data.timeseries["Epoch"]["hermes_nem_sampflags"].meta.update(
+        OrderedDict({"CATDESC":"FLAGS: bit 0: power-on, bit 1: bad cksum"})
+    )
 
     nemisis_data.timeseries["Epoch_pkt"]["hermes_nem_ebox_temp"].meta.update(
         OrderedDict({"CATDESC":"EBOX temperature in deg C"})
@@ -591,6 +628,16 @@ def l0_sci_data_to_l1(data: dict, original_filename: Path) -> Path:
     )
     nemisis_data.timeseries["Epoch_pkt"]["hermes_nem_rtc_year"].meta.update(
         OrderedDict({"CATDESC":"RTC year"})
+    )
+
+    nemisis_data.timeseries["Epoch_pkt"]["hermes_nem_met_seconds"].meta.update(
+        OrderedDict({"CATDESC":"MET seconds"})
+    )
+    nemisis_data.timeseries["Epoch_pkt"]["hermes_nem_sctf_seconds"].meta.update(
+        OrderedDict({"CATDESC":"SCTF seconds"})
+    )
+    nemisis_data.timeseries["Epoch_pkt"]["hermes_nem_sctf_subseconds"].meta.update(
+        OrderedDict({"CATDESC":"SCTF subseconds"})
     )
 
     nemisis_data.timeseries["Epoch_pkt"]["hermes_nem_rtc_time"].meta.update(
