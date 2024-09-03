@@ -1,28 +1,28 @@
-name, bit_length, data_type, note
-SECONDS,32,UINT, Tlm Secondary Header - Seconds
-SUBSECS,16,UINT, Tlm Secondary Header - Subseconds
-SYNC,16,UINT,uint16_t sync
-PKT_ID,32,UINT,uint32_t pkt_id_num
-ACQ_POS_NUM,8,UINT,uint8_t acq_pos_num
-XSUM,1,UINT, 0 disagree, 1 agree
-START_FLAG,1,UINT, 0 disagree, 1 agree
-UNUSED,4,UINT, op status 
-OPS_MODE,1,UINT, 0 Normal, 1 - Safe
-RELAY_STATE,1,UINT, 0 disengaged, 1 engaged
-RTC_HUNDRETH,8,UINT,uint8_t rtc_seconds
-RTC_SECONDS,8,UINT,uint8_t rtc_seconds
-RTC_MINUTES,8,UINT,uint8_t rtc_minutes
-RTC_HOURS,8,UINT,uint8_t rtc_hours
-RTC_DAY,8,UINT,int8_t rtc_day
-RTC_MONTH,8,UINT,uint8_t rtc_month
-RTC_YEAR,8,UINT,uint8_t rtc_year
-MET_SECONDS,32,UINT,int32_t met_seconds
-SCTF_SECONDS,32,UINT,uint32_t stcf_seconds
-SCTF_SUBSECONDS,32,UINT,uint32_t stcf_subseconds
-MAG_DATA, 8, UINT(1080), uint8_t mag_data[1080]
-BOX_TEMP,16,UINT,uint16_t box_temp
-FLUXGATE_TEMP,16,UINT,uint16_t fluxgate_temp
-MIS1_TEMP,16,UINT,uint16_t mis1_temp
-MIS2_TEMP,16,UINT,uint16_t mis2_temp
-CHECKSUM,16,UINT,uint16_t chksum
-SPARE,8,UINT,int8 spare
+name,data_type,bit_length
+SECONDS,uint,32
+SUBSECS,uint,16
+SYNC,uint,16
+PKT_ID,uint,32
+ACQ_POS_NUM,uint,8
+XSUM,uint,1
+START_FLAG,uint,1
+UNUSED,uint,4
+OPS_MODE,uint,1
+RELAY_STATE,uint,1
+RTC_CSEC,uint,8
+RTC_SECONDS,uint,8
+RTC_MINUTES,uint,8
+RTC_HOURS,uint,8
+RTC_DAY,uint,8
+RTC_MONTH,uint,8
+RTC_YEAR,uint,8
+MET_SECONDS,uint,32
+SCTF_SECONDS,uint,32
+SCTF_SUBSECONDS,uint,16
+ISR_COUNT,uint,16
+MAG_DATA,int(360),24
+EBOX_TEMP,int,16
+FG_TEMP,int,16
+PNI1_TEMP,int,16
+PNI2_TEMP,int,16
+CHECKSUM,uint,16
