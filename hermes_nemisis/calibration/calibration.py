@@ -164,6 +164,9 @@ def parse_l0_sci_packets(data_filename: Path) -> dict:
     for i in range(n_pkts):
         CK_A = 0 
         CK_B = 0
+        # each NEMISIS packet is 1117 bytest long.  
+        # The last two bytes are the checksum bytes.
+        # The checksum is calculatated on the first 1115 bytes.
         for octet_num in range(1115):
             CK_A = (CK_A + packet_bytes[i][octet_num+6]) % 255
             CK_B = (CK_B + CK_A) % 255
@@ -201,8 +204,12 @@ def l0_sci_data_to_l1(data: dict, original_filename: Path) -> Path:
     """
     log.info(f"Begin l0_sci_data_to_l1")
 
+    # retrieve the version of the Level 0 input file, which 
+    # consists of a single, two-digit version number.
     file_metadata = parse_science_filename(original_filename.name)
-
+ 
+    # the Z-version of the Level 1 file  will reflect the version of the Level 0 file, 
+    # but without any leading zero.
     cdf_version = f'1.0.{int(file_metadata["version"])}'
 
     from astropy.time import Time, TimeDelta
@@ -217,8 +224,8 @@ def l0_sci_data_to_l1(data: dict, original_filename: Path) -> Path:
     # verify checksums
     checksum_valid = data["calculated_checksum"][range(n_pkts)] == data["CHECKSUM"][range(n_pkts)]
 
-
-    # # test bad packet(s) at end of file #### TEST
+    ## Test bad packet(s) at the end of the file #### TEST
+    ## poke in some data values to simulate bad packet(s)
     # data["START_FLAG"][n_pkts-1] = 1    #### TEST
     # data["XSUM"][n_pkts-2] = 0          #### TEST
     for pkt in range(n_pkts):

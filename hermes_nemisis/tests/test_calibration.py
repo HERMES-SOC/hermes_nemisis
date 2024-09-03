@@ -7,11 +7,18 @@ from hermes_core.util.util import create_science_filename, parse_science_filenam
 from hermes_nemisis.calibration.readbin_CCSDS import readbin_CCSDS
 
 level0_filename = "hermes_NEM_l0_2024085-174022_v00.bin"
-#level0_filename = "hermes_NEM_l0_2024085-000000_v00.bin"  # this file combines two files together:
-#cat ccsds-level0/hermes_NEM_l0_2024085-17*.bin > hermes_nemisis/hermes_nemisis/data/hermes_NEM_l0_2024085-000000_v00.bin
 level1_filename = "hermes_nem_l1_20240325T173118_v1.0.0.cdf"
 ql_filename = "hermes_nem_ql_20240325T173118_v1.0.0.cdf"
-
+## the following file is too large to be incuded in the GIT repository, but contains data for 
+## for several important test cases:
+## * flagging all data points from packets with bad checksum.
+## * flagging the initial sample a sample of a startup packet based on instrument status flags.
+## * determining the correct time tags for data from startup packets. 
+## It contains data from a single test that was recorded in 3 separate COSMOS-generated binlog files, 
+## and was generated as follows:
+## in directory on OneDrive: General - HERMES-NEMISIS/HERMES-NEMISIS-GroundSystem/ 
+## cat I&T\ Sample\ L0\ files\ for\ SOC/ccsds-level0/hermes_NEM_l0_2024085-17*.bin > hermes_nemisis/hermes_nemisis/data/hermes_NEM_l0_2024085-000000_v00.bin
+# level0_filename = "hermes_NEM_l0_2024085-000000_v00.bin"  
 
 @pytest.fixture(scope="session")
 def level0_file(tmp_path_factory):
@@ -27,10 +34,6 @@ def level1_file(tmp_path_factory):
     with open(fn, "w"):
         pass
     return fn
-
-# def test_readbin_CCSDS():  
-#     output_file = readbin_CCSDS('hermes_nemisis/data/hermes_NEM_l0_2024085-174022_v00.bin')
-#     # assert output_file.is_file()  # this fails.  output_file is a string object, not a file. is this a HermesData issue?
 
 def test_parse_l0_sci_packets():
     data = calib.parse_l0_sci_packets(hermes_nemisis._data_directory / level0_filename)
